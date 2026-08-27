@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clinical Diagnostic Case 01 · CDCA</title>
+<style>
+  :root{--chrome:#eef1f4;--pane:#ffffff;--epicblue:#1f4e79;--epicbar:#dce9f5;--epichdr:#2d6da3;
+        --navy:#003b5c;--orange:#f47b20;--ink:#22303a;--muted:#5b6b76;--line:#ccd6de;--alert:#b00020;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;background:var(--chrome);color:var(--ink);font-size:14px;padding-bottom:70px;}
+  /* ---- sticky control bar ---- */
+  #phasebar{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;display:flex;align-items:center;gap:10px;padding:8px 12px;transition:background .3s;}
+  #phasebar.amber{background:#c05f10;} #phasebar.red{background:#a01522;} #phasebar.green{background:#1f6b45;}
+  #phasebar.urgent{animation:tflash 1s infinite;}
+  @keyframes tflash{0%,100%{filter:brightness(1);}50%{filter:brightness(1.4);}}
+  #timer{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;}
+  #phaselabel{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#ffd9b3;line-height:1.2;}
+  #phasehint{font-size:10.5px;color:#d5e2ec;line-height:1.2;}
+  /* ---- sticky tab bar ---- */
+  #tabbar{position:sticky;top:48px;z-index:19;background:var(--pane);border-bottom:2px solid var(--line);display:flex;overflow-x:auto;white-space:nowrap;}
+  #tabbar button{flex:1;background:none;border:none;border-bottom:3px solid transparent;padding:10px 10px;font-size:12.5px;font-weight:700;color:var(--ink);cursor:pointer;}
+  #tabbar button.active{border-bottom-color:var(--orange);color:var(--epicblue);background:var(--epicbar);}
+  #tabbar button:hover{background:#f0f5fa;}
+  #tabbar button.disabled{opacity:.35;cursor:not-allowed;}
+  #tabbar .cnt{background:var(--navy);color:#fff;border-radius:10px;padding:1px 7px;font-size:10.5px;font-weight:800;margin-left:4px;}
+  #tabbar .cnt.low{background:#c05f10;} #tabbar .cnt.out{background:var(--alert);}
+  /* ---- compact patient strip ---- */
+  .pstrip{background:var(--pane);border-bottom:1px solid var(--line);border-left:5px solid var(--epichdr);padding:8px 12px;display:flex;gap:12px;align-items:center;}
+  .pstrip h1{font-size:19px;font-weight:800;color:var(--epicblue);line-height:1.2;}
+  .pstrip .sub{font-size:12px;color:var(--muted);}
+  .pstrip .cc{font-size:13px;margin-top:2px;}
+  .pstrip .cclabel{font-weight:800;color:var(--epicblue);margin-right:5px;}
+  .pstrip .cctext{font-style:italic;}
+  .pstrip details{font-size:12px;color:var(--muted);margin-top:2px;}
+  .pstrip summary{cursor:pointer;color:var(--epichdr);font-weight:600;}
+  .pstrip .allerg{color:var(--alert);font-weight:700;}
+  main{padding:12px;max-width:900px;margin:0 auto;}
+  .panel{display:none;} .panel.active{display:block;}
+  .card{background:var(--pane);border:1px solid var(--line);border-radius:8px;margin-bottom:12px;overflow:hidden;}
+  .card h2{font-size:13px;color:var(--epicblue);background:var(--epicbar);padding:8px 14px;font-weight:700;border-bottom:1px solid var(--line);}
+  .card .body{padding:12px 14px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{text-align:left;padding:5px 8px;border-bottom:1px solid #e6ecf1;vertical-align:top;}
+  .kv td:first-child{color:var(--muted);width:42%;}
+  .note{background:#fff8f1;border:1px solid #f3d9bb;border-radius:8px;padding:9px 12px;font-size:12.5px;color:#7a4a12;margin-bottom:12px;}
+  .quota{display:flex;align-items:center;gap:14px;background:var(--navy);color:#fff;border-radius:8px;padding:8px 14px;margin-bottom:12px;}
+  .quota .qbig{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;min-width:42px;text-align:center;}
+  .quota .qlabel{font-size:12px;font-weight:600;line-height:1.35;color:#d3e2ee;}
+  .quota.low{background:#c05f10;} .quota.out{background:var(--alert);}
+  /* interview: pinned transcript above scrolling question list */
+  .transcript{position:sticky;top:88px;z-index:10;background:var(--pane);border:1px solid var(--line);border-radius:8px;padding:10px;height:235px;overflow-y:auto;margin-bottom:12px;box-shadow:0 4px 10px rgba(0,30,60,.10);}
+  .msg{margin-bottom:10px;max-width:90%;}
+  .msg .whol{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:2px;}
+  .msg .bubble{padding:7px 11px;border-radius:10px;font-size:13px;line-height:1.45;}
+  .msg.student{margin-left:auto;} .msg.student .bubble{background:#e8f0f6;border:1px solid #cddbe6;}
+  .msg.patient .bubble{background:#fdf6ef;border:1px solid #f0ddc8;}
+  .msg.collateral .bubble{background:#eef2ee;border:1px solid #cfe0cf;}
+  .msg .cue{font-style:italic;color:var(--muted);font-size:11.5px;margin-top:3px;}
+  .counter{font-size:11.5px;color:var(--muted);margin:-6px 2px 10px;text-align:right;}
+  .qlist details{border:1px solid var(--line);border-radius:8px;margin-bottom:8px;background:var(--pane);}
+  .qlist summary{cursor:pointer;padding:9px 12px;font-weight:700;font-size:12.5px;color:var(--epicblue);background:var(--epicbar);border-radius:8px;}
+  .qlist details[open] summary{border-radius:8px 8px 0 0;border-bottom:1px solid var(--line);}
+  .qlist button{display:block;text-align:left;background:#f7fafc;border:1px solid var(--line);border-radius:6px;padding:8px 10px;margin:6px 8px 8px;width:calc(100% - 16px);font-size:12.5px;cursor:pointer;color:var(--ink);}
+  .qlist button:hover{background:#eef4f8;} .qlist button.asked{opacity:.45;cursor:default;}
+  .qlist button.locked{opacity:.3;cursor:not-allowed;}
+  .obs p{margin-bottom:9px;line-height:1.5;font-size:13px;} .obs .label{font-weight:700;color:var(--epicblue);}
+  details.ogrp{border:1px solid var(--line);border-radius:8px;margin-bottom:10px;background:var(--pane);}
+  details.ogrp summary{cursor:pointer;padding:9px 14px;font-weight:700;font-size:13px;color:var(--epicblue);background:var(--epicbar);border-radius:8px;}
+  details.ogrp[open] summary{border-radius:8px 8px 0 0;border-bottom:1px solid var(--line);}
+  .action{display:flex;align-items:flex-start;gap:10px;border-bottom:1px solid #e6ecf1;padding:9px 12px;background:var(--pane);}
+  .action:last-child{border-bottom:none;}
+  .action button{flex-shrink:0;background:var(--epichdr);color:#fff;border:none;border-radius:5px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;}
+  .action button:disabled{background:#8fa4b2;cursor:default;}
+  .action.locked button{background:#c4ced6;cursor:not-allowed;}
+  .action .name{font-weight:600;font-size:13px;color:var(--ink);}
+  .action .result{margin-top:5px;font-size:12.5px;line-height:1.5;display:none;background:#f2f7f4;border-left:3px solid #2e7d54;padding:7px 10px;border-radius:0 6px 6px 0;}
+  .action.revealed .result{display:block;}
+  .flag{color:var(--alert);font-weight:700;}
+  .dq{border:1px solid var(--line);border-left:4px solid var(--orange);border-radius:8px;padding:11px 14px;margin-bottom:11px;background:var(--pane);font-size:13px;line-height:1.55;}
+  .dq b{color:var(--epicblue);} .dq ul{margin:6px 0 0 20px;}
+  #logtable td.t{color:var(--muted);width:56px;font-variant-numeric:tabular-nums;}
+  #logtable td.k{width:80px;font-weight:700;color:var(--epicblue);font-size:11px;text-transform:uppercase;}
+  textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px;font:inherit;font-size:13.5px;resize:vertical;}
+  /* ---- bottom bar + notes drawer ---- */
+  #bottombar{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--navy);display:flex;gap:8px;padding:8px 10px;box-shadow:0 -3px 10px rgba(0,20,40,.25);}
+  #notesbtn{flex:1;background:var(--orange);color:#fff;border:none;border-radius:8px;padding:10px;font-size:13.5px;font-weight:800;cursor:pointer;}
+  #phasebtn{flex:1.4;background:#7a1f1f;color:#fff;border:2px solid rgba(255,255,255,.35);border-radius:8px;padding:10px;font-size:12.5px;font-weight:700;cursor:pointer;display:none;}
+  #phasebtn:hover{background:#5d1717;}
+  #drawer{position:fixed;left:0;right:0;bottom:52px;z-index:24;background:var(--pane);border-top:3px solid var(--orange);box-shadow:0 -6px 18px rgba(0,20,40,.3);padding:12px 14px;display:block;max-height:25vh;overflow-y:auto;}
+  #drawer h2{font-size:13px;color:var(--epicblue);font-weight:800;margin-bottom:8px;}
+  #drawer textarea{min-height:90px;}
+  #drawer .used{font-size:12px;color:var(--muted);margin-top:6px;}
+  .pulse{animation:pulse 1.2s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(244,123,32,.7);}70%{box-shadow:0 0 0 12px rgba(244,123,32,0);}100%{box-shadow:0 0 0 0 rgba(244,123,32,0);}}
+  #startoverlay{position:fixed;inset:0;background:rgba(0,38,62,.96);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto;}
+  #startoverlay .box{background:#fff;border-radius:14px;max-width:620px;padding:22px 26px;line-height:1.55;font-size:13.5px;margin:auto;}
+  #startoverlay h2{color:var(--navy);margin-bottom:10px;font-size:19px;}
+  #startoverlay ol{margin:8px 0 14px 20px;}
+  #startoverlay li{margin-bottom:7px;}
+  #startoverlay button{background:var(--orange);color:#fff;border:none;border-radius:8px;padding:13px 24px;font-size:15px;font-weight:700;cursor:pointer;}
+  #announce{position:fixed;inset:0;background:rgba(0,38,62,.85);z-index:60;display:none;align-items:center;justify-content:center;padding:16px;}
+  #announce .box{background:#fff;border-radius:14px;max-width:520px;padding:22px 26px;text-align:center;}
+  #announce h2{color:var(--alert);font-size:19px;margin-bottom:9px;}
+  #announce p{font-size:14px;line-height:1.55;margin-bottom:14px;}
+  #announce button{background:var(--navy);color:#fff;border:none;border-radius:8px;padding:11px 22px;font-size:14px;font-weight:700;cursor:pointer;}
+</style>
+</head>
+<body>
+<div id="phasebar">
+  <div id="timer">READY</div>
+  <div><div id="phaselabel">Click Begin</div><div id="phasehint">Timer starts on Begin</div></div>
+</div>
+
+<div id="tabbar">
+  <button class="active" data-p="chart">Chart</button>
+  <button data-p="interview">Interview <span class="cnt" id="b-iv">12</span></button>
+  <button data-p="observe">Exam <span class="cnt" id="b-exam">5</span></button>
+  <button data-p="orders">Orders <span class="cnt" id="b-order">8</span></button>
+  <button data-p="defense">Oral Defense</button>
+  <button data-p="log">Log</button>
+</div>
+
+<div class="pstrip">
+  <!-- PORTRAIT_START case 01 (swap this svg for a patient photo if desired) --><svg viewBox="0 0 200 200" width="88" height="88" role="img" aria-label="Case 01" style="border-radius:50%;flex-shrink:0;"><circle cx="100" cy="100" r="98" fill="#1f4e79"/><circle cx="100" cy="100" r="98" fill="none" stroke="#f47b20" stroke-width="7"/><text x="100" y="88" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="30" font-weight="700" fill="#9fb8c9" letter-spacing="4">CASE</text><text x="100" y="152" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="64" font-weight="800" fill="#ffffff">01</text></svg><!-- PORTRAIT_END -->
+  <div style="flex:1;min-width:0;">
+    <h1>Ashley Moreno</h1>
+    <div class="sub">24 / Female &nbsp;·&nbsp; MRN UT-830147</div>
+    <div class="cc"><span class="cclabel">Chief Complaint:</span><span class="cctext">“My leg keeps giving out, and sometimes I can't get my words out.”</span></div>
+    <details><summary>More patient details</summary>
+      Encounter: Outpatient psychiatric evaluation (PCP referral) &nbsp;·&nbsp; Allergies: <span class="allerg">NKDA</span>
+    </details>
+  </div>
+</div>
+
+<main>
+<section id="chart" class="panel active">
+  <div class="grid">
+    <div class="card"><h2>Demographics</h2><div class="body"><table class="kv"><tr><td>Name</td><td>Ashley Moreno</td></tr><tr><td>Age / Sex</td><td>24 / Female</td></tr><tr><td>Setting</td><td>Outpatient psychiatric evaluation (PCP referral)</td></tr><tr><td>Occupation</td><td>Graduate student</td></tr></table></div></div>
+    <div class="card"><h2>Vital Signs (today)</h2><div class="body"><table class="kv"><tr><td>BP</td><td>116/74 mmHg</td></tr><tr><td>HR</td><td>78 bpm</td></tr><tr><td>RR</td><td>14 / min</td></tr><tr><td>Temp</td><td>98.5°F</td></tr><tr><td>SpO₂</td><td>99% room air</td></tr></table></div></div>
+  </div>
+  <div class="card"><h2>Referral Note</h2><div class="body"><p style="line-height:1.6">24-year-old graduate student with four ED visits over eight months for intermittent right lower extremity weakness and episodes of slow, slurred speech. Complete neurological workup normal. Referring for psychiatric evaluation; patient is frustrated and fears a missed neurological diagnosis.</p></div></div>
+  <div class="card"><h2>Medications, Allergies &amp; History</h2><div class="body"><table class="kv"><tr><td>Current medications</td><td>None, no prescription, OTC, or herbal products</td></tr><tr><td>Allergies</td><td>NKDA</td></tr><tr><td>Medical history</td><td>No chronic illness, surgeries, or neurological disorder</td></tr><tr><td>Prior workup</td><td>Brain MRI, head CT, CBC, CMP, TSH, EEG, and neurology consultation, all within normal limits; no evidence of seizure disorder, stroke, or MS</td></tr></table></div></div>
+</section>
+
+<section id="interview" class="panel">
+  <div class="quota" id="q-iv"><span class="qbig" id="n-iv">12</span><span class="qlabel">interview questions remaining. Not every question below is worth asking; choose what this patient needs. Responses appear in the pinned transcript.</span></div>
+  <div class="transcript" id="transcript">
+    <div class="msg patient"><div class="whol">Ashley</div><div class="bubble">"I'll be honest, I don't think I should be here. Four ER visits and everyone says my tests are normal. Tests don't fall down the stairs, I do."</div><div class="cue">Well-groomed, appropriate eye contact, visibly frustrated.</div></div>
+  </div>
+  <div class="counter"><span id="asked">0</span> questions asked</div>
+  <div class="qlist" id="qlist"></div>
+</section>
+
+<section id="observe" class="panel">
+  <div class="quota" id="q-exam"><span class="qbig" id="n-exam">5</span><span class="qlabel">examinations remaining. Baseline observations are free. The menu is identical for every case; not every maneuver applies.</span></div>
+  <div class="card obs"><h2>Behavioral Observations</h2><div class="body"><p><span class="label">Appearance:</span> Appropriately groomed and dressed. Appears stated age.</p><p><span class="label">Behavior:</span> Cooperative, maintains appropriate eye contact. No abnormal movements observed at rest.</p><p><span class="label">Speech:</span> Normal rate and volume; becomes mildly slowed when discussing academic stress, then normalizes.</p><p><span class="label">Mood / Affect:</span> States mood is 'frustrated'; affect congruent.</p><p><span class="label">Thought / Perception:</span> Linear, logical, goal-directed. No delusions, obsessions, or perceptual disturbances. Denies SI/HI.</p><p><span class="label">Cognition / Insight:</span> Alert, oriented ×4. Insight limited regarding stress–symptom relationship; judgment intact.</p></div></div>
+  <div class="card"><h2>Physical &amp; Psychometric Examinations</h2><div id="examlist"></div></div>
+</section>
+
+<section id="orders" class="panel">
+  <div class="quota" id="q-order"><span class="qbig" id="n-order">8</span><span class="qlabel">diagnostic orders remaining. Identical menu for every case. Your grade includes choosing what fits this patient and skipping what does not.</span></div>
+  <div id="orderlist"></div>
+</section>
+
+<section id="defense" class="panel">
+  <div class="note">These are the four questions of your <b>five-minute oral defense</b>. When the defense begins, face your camera and present in one continuous recording, as though presenting to your collaborating psychiatrist or interdisciplinary treatment team.</div>
+  <div class="dq"><b>1. State your primary DSM-5-TR diagnosis and ICD-10 diagnosis code.</b><br>Explain why this diagnosis best fits the patient's presentation by discussing at least three to four specific clinical findings from the case.</div>
+  <div class="dq"><b>2. Discuss the single most important differential diagnosis.</b><br>Explain why this diagnosis was considered and why it was ruled out using evidence from the patient presentation.</div>
+  <div class="dq"><b>3. Present your initial evidence-based treatment recommendations.</b><br>Discuss:<ul><li>Appropriate level of care</li><li>Medication recommendation (or explain why medication is not indicated)</li><li>Appropriate psychotherapy</li><li>One patient education point or safety consideration</li></ul></div>
+  <div class="dq"><b>4. Conclude your presentation by answering the following question.</b><br>What additional question, assessment, or diagnostic information would you obtain before finalizing your diagnosis or treatment plan, and why is this information clinically important?</div>
+</section>
+
+<section id="log" class="panel">
+  <div class="note">Before your oral defense, <b>scroll slowly through this log on camera</b>. After your defense, click <b>Generate &amp; Copy Encounter Summary</b> below and paste it into the quiz answer box. It is your submitted written record.</div>
+  <div class="card"><h2>Actions Taken</h2><div class="body">
+    <table id="logtable"><tbody id="logbody"><tr><td class="t">00:00</td><td class="k">Start</td><td>Encounter opened. Reviewed referral.</td></tr></tbody></table>
+  </div></div>
+  <div class="card"><h2>Encounter Summary: your quiz answer</h2><div class="body">
+    <p style="font-size:13px;line-height:1.5;margin-bottom:10px;">When your presentation is finished, click the button below. It compiles your clinical notes and your complete time-stamped action log into one text block and copies it. <b>Paste it into the essay answer box below the simulation.</b></p>
+    <button id="gencopy" style="background:var(--orange);color:#fff;border:none;border-radius:6px;padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer;" onclick="buildSummary()">Generate &amp; Copy Encounter Summary</button>
+    <span id="copystatus" style="display:block;margin-top:8px;font-size:12.5px;color:#2e7d54;font-weight:600;"></span>
+    <textarea id="summarybox" readonly style="display:none;margin-top:10px;min-height:200px;font-family:ui-monospace,Consolas,monospace;font-size:12px;"></textarea>
+  </div></div>
+</section>
+</main>
+
+<div id="drawer">
+  <h2>Clinical Notes / Working Impression</h2>
+  <textarea id="impression" placeholder="Type as you go: leading diagnosis, top differentials, findings that discriminate between them, and your plan. Visible in your screen recording."></textarea>
+  <div class="used">Used: <span id="sum-iv">0</span>/12 questions · <span id="sum-exam">0</span>/5 exams · <span id="sum-order">0</span>/8 orders</div>
+</div>
+<div id="bottombar">
+  <button id="notesbtn" onclick="toggleDrawer()">✕ Close Notes</button>
+  <button id="phasebtn" onclick="phaseAdvance()">End Case Review Early → Begin Oral Defense</button>
+</div>
+
+<script>
+const IV=[{"cat": "Episode Characterization", "qs": [["Walk me through exactly what happens during an episode.", "\"My right leg suddenly goes weak, it just gives out and I have to grab something or sit. Sometimes my speech gets slow and slurred at the same time, even though I know exactly what I want to say. It lasts twenty minutes to an hour, then everything goes completely back to normal.\"", ""], ["Are you fully aware during episodes? Any loss of consciousness, incontinence, or confusion afterward?", "\"Completely aware. I never black out, never lose control of my bladder, no confusion after. I just have to wait it out.\"", "No seizure features."], ["Is there any pattern to when the episodes occur?", "(sighs) \"Everyone asks that. They mostly happen before big exams or when I have to present in front of the class. But stress can't make a leg stop working... can it?\"", "Tenses when the pattern is named."], ["Have the episodes ever happened when you were alone and relaxed, or during sleep?", "\"Now that you ask... no. Never in my sleep. And honestly, almost never when I'm home alone on a normal day. It's always around school things.\"", ""]]}, {"cat": "General Medical & Lifestyle", "qs": [["Have you traveled internationally in the past year?", "\"No, I haven't been out of the country in years.\"", ""], ["Any recent fevers, infections, or tick bites?", "\"No, nothing like that.\"", ""], ["Tell me about your diet, any recent changes?", "\"Pretty normal. Nothing's really changed there.\"", ""], ["How much caffeine do you have in a typical day?", "\"A cup or two of coffee in the morning. Nothing unusual.\"", ""], ["Do you exercise regularly?", "\"Here and there. Less than I should, like most people.\"", ""], ["Are you taking any vitamins, supplements, or herbal products?", "\"No, none.\"", ""], ["Any recent dental work or dental pain?", "\"My teeth are fine... why do you ask?\"", "Looks puzzled by the question."]]}, {"cat": "Impact & Illness Beliefs", "qs": [["How has this affected school and your daily life?", "\"I've started skipping class and presentations because I'm terrified it'll happen in front of everyone. I'm behind in my program. My whole life is shrinking around this.\"", ""], ["What do you believe is causing your symptoms?", "\"Something neurological they haven't found yet. MS, a small stroke, something. I've read that tests miss things early on. I need someone to keep looking, not send me to a psychiatrist.\"", ""], ["What was it like growing up in your family?", "\"Structured. Achievement was everything. You didn't complain, you didn't cry, you brought home the grades. My mom has anxiety, treated now, but back then feelings just weren't something we discussed.\"", "Emotional expression discouraged; achievement emphasized."]]}, {"cat": "Background & Social Detail", "qs": [["What part of the country did you grow up in?", "\"Around here, mostly. Nothing remarkable about that part.\"", ""], ["Do you have reliable transportation to appointments?", "\"Getting places isn't a problem.\"", ""], ["Any pets at home?", "\"No pets.\"", "Brief pause, as if wondering where this is going."], ["What did your parents do for work?", "\"Regular jobs. I don't really see how that matters.\"", ""], ["Any lawsuits, disability claims, or compensation cases pending?", "\"No, nothing like that.\"", ""], ["Do you follow a particular religion or spiritual practice?", "\"Somewhat, but it's not a big part of what's going on.\"", ""]]}, {"cat": "Psychiatric Screening", "qs": [["How is your mood, and your sleep, appetite, and energy?", "\"Frustrated, honestly, but not depressed. I sleep fine unless an exam is coming. I eat normally. I still enjoy things when I'm not worried about my leg.\"", ""], ["Any panic attacks, constant worry, obsessive thoughts, or rituals?", "\"No panic attacks. I worry about the episodes, but that's it. No weird thoughts or habits.\"", ""], ["Any periods of unusually high energy with little need for sleep? Ever hear or see things others don't?", "\"No, nothing like that. Ever.\"", ""], ["Have you had any thoughts of hurting yourself or others?", "\"No. Never. I just want my body to work.\"", ""]]}, {"cat": "Medical, Substances & History", "qs": [["Any headaches, seizures, head injury, vision changes, or bowel or bladder problems?", "\"No headaches, no seizures, never hit my head. Vision's fine. None of that.\"", ""], ["Do you drink alcohol or use any substances at all?", "\"None. No alcohol, no drugs, nothing. You can test me.\"", ""], ["Any previous mental health treatment, or unexplained physical symptoms earlier in life?", "\"Never seen a therapist or taken psych meds. Unexplained symptoms... I used to get bad stomachaches before piano recitals as a kid. The doctor never found anything. I hadn't thought about that in years.\"", ""]]}];
+const EXAMS=[["General physical examination", "Unremarkable. No acute findings."], ["Neurological examination", "DTRs 2+ symmetric, tone normal, plantars downgoing, sensation intact throughout."], ["Motor / functional testing (incl. Hoover's sign)", "Right hip flexion and knee extension show give-way weakness: full strength generated briefly, then sudden collapse. Left leg 5/5 throughout. No atrophy or fasciculations.<br>Right hip extension weak on direct testing; with contralateral hip flexion against resistance, right hip extension force normalizes completely. <span class='flag'>Hoover's sign positive</span>, a validated positive sign of functional weakness.<br>Walked into clinic without difficulty. On formal testing, develops variable right leg dragging that diminishes when she is engaged in conversation mid-walk."], ["Speech & language assessment", "Conversational speech normal. Describing episodes, speech slows; during an engaging distraction task it fully normalizes."], ["Structured behavioral task (2-minute speech sample)", "Completes the task without notable distress, avoidance, or abnormality."], ["Structured symptom timeline (life chart, incl. collateral)", "Non-contributory: no discrete episode pattern identified; collateral account matches patient's."], ["Repeat vital signs", "Unchanged from intake."], ["Weight / BMI comparison with chart", "Stable compared with prior documented visits."], ["Hearing / vision screen", "Normal."], ["Cognitive screen (MoCA)", "27/30, within normal range for age and education."], ["Clock draw test", "Normal: numbers well spaced, hands correctly placed."], ["Thyroid examination", "No thyromegaly, no tremor, no lid lag."], ["Cardiopulmonary examination", "Heart regular rate and rhythm, no murmurs. Lungs clear."], ["Abdominal examination", "Soft, non-tender. Liver span normal; no organomegaly."], ["Skin examination", "No lesions, scars, rashes, or track marks."], ["Withdrawal assessment (CIWA-Ar)", "Score 0, no signs of withdrawal."], ["Young Mania Rating Scale (clinician-rated)", "Score 2, no significant manic symptoms."], ["C-SSRS (clinician-administered)", "Negative, no suicidal ideation or behavior, current or lifetime."]];
+const ORDERS=[{"cat": "Screening Instruments", "items": [["PHQ-9 (depression)", "Score 6, mild. Item 9 = 0."], ["GAD-7 (anxiety)", "Score 11, moderate anxiety."], ["PHQ-15 (somatic symptoms)", "Score 12, medium-high somatic symptom burden."], ["PDSS (panic severity)", "Score 2, minimal panic symptoms."], ["LSAS (social anxiety)", "Score 22, below clinical threshold."], ["SPIN (social phobia)", "Score 9, below threshold."], ["PSWQ (pathological worry)", "Score 38, within normal range."], ["Y-BOCS (obsessive-compulsive)", "Score 3, subclinical."], ["PCL-5 (PTSD)", "Score 8, below threshold."], ["PC-PTSD-5 (trauma screen)", "0/5, negative."], ["MDQ (bipolar screen)", "Negative screen."], ["ASRS v1.1 (adult ADHD)", "Negative, 1/6 Part A items endorsed."], ["AUDIT (alcohol use)", "Score 2, low risk."], ["MSI-BPD (borderline screen)", "Score 1/10, negative."], ["Whiteley Index (health anxiety)", "Not elevated."], ["GDS-15 (geriatric depression)", "1/15, not suggestive of depression."], ["ISI (insomnia severity)", "Score 4, no clinically significant insomnia."], ["Epworth Sleepiness Scale", "Score 5, normal daytime sleepiness."], ["STOP-BANG (sleep apnea)", "Score 1, low risk."], ["AQ-10 (autism spectrum screen)", "Score 2, negative screen."], ["RAADS-R (autism spectrum)", "Score 44, below threshold."], ["PANSS (psychosis rating, clinician)", "Not elevated, no significant positive or negative symptoms rated."]]}, {"cat": "Laboratory", "items": [["CBC", "All within normal limits (repeated today; also normal 2 months ago)."], ["CMP", "Within normal limits."], ["TSH", "Within normal limits."], ["B12 / folate", "Within normal limits."], ["LFTs incl. GGT", "Within normal limits."], ["Lipid panel / HbA1c", "Within normal limits."], ["Urine drug screen", "Negative for all substances."], ["Blood alcohol level", "0.00%."], ["Pregnancy test (hCG)", "Negative."], ["RPR / HIV", "Non-reactive / negative."]]}, {"cat": "Imaging & Studies", "items": [["ECG", "Normal sinus rhythm; no abnormalities."], ["EEG", "Prior routine EEG normal; no electrographic correlate during a witnessed episode."], ["CT head", "No acute intracranial abnormality."], ["MRI brain", "Two prior MRIs normal within 8 months. Radiology flags duplicate imaging. <em>Consider what a third normal study would change, and what repeat testing may reinforce.</em>"], ["Polysomnography (sleep study)", "No clinically significant findings."], ["Cardiology re-evaluation", "Cardiology: no indication for further cardiac evaluation identified."]]}, {"cat": "Records & Collateral", "items": [["Request prior / outside records", "No additional records located beyond what is already in the chart."], ["Developmental history (collateral, structured)", "Normal milestones; no early developmental concerns reported."], ["Functional assessment (IADL / FAQ, collateral)", "No impairment in instrumental activities of daily living reported."], ["Sleep diary (2-week)", "Unremarkable: consistent 7–8 h sleep, latency under 20 minutes."], ["Occupational / driving safety evaluation", "No safety indication identified."], ["Formal testing referral (ADOS-2 / neuropsychological)", "No formal-testing indication identified at this time."]]}];
+const LIMIT={iv:12,exam:5,order:8};
+const used={iv:0,exam:0,order:0};
+let sec=0;
+function mmss(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+const LOG=[{t:'00:00',kind:'Start',text:'Encounter opened. Reviewed referral.'}];
+function logAdd(kind,text){
+  LOG.push({t:mmss(sec),kind:kind,text:text});
+  const row=document.createElement('tr');
+  row.innerHTML='<td class="t">'+mmss(sec)+'</td><td class="k">'+kind+'</td><td>'+text+'</td>';
+  document.getElementById('logbody').appendChild(row);
+}
+function toggleDrawer(force){
+  const d=document.getElementById('drawer');
+  const show = force!==undefined ? force : d.style.display!=='block';
+  d.style.display = show ? 'block' : 'none';
+  document.getElementById('notesbtn').textContent = show ? '✕ Close Notes' : '📝 Clinical Notes';
+}
+function buildSummary(){
+  const imp=document.getElementById('impression').value.trim()||'(none entered)';
+  let out='PMHNP CDCA ENCOUNTER SUMMARY\n';
+  out+='Case 01: Ashley Moreno\nElapsed time: '+mmss(sec)+'\n';
+  out+='Actions used: '+used.iv+'/12 questions, '+used.exam+'/5 exams, '+used.order+'/8 orders\n';
+  out+='\n--- CLINICAL NOTES / WORKING IMPRESSION ---\n'+imp+'\n';
+  out+='\n--- ENCOUNTER LOG (chronological) ---\n';
+  LOG.forEach(e=>{out+='['+e.t+'] '+e.kind.toUpperCase()+': '+e.text.replace(/<[^>]+>/g,'')+'\n';});
+  const box=document.getElementById('summarybox');
+  box.value=out;box.style.display='block';
+  box.focus();box.select();
+  let copied=false;
+  try{copied=document.execCommand('copy');}catch(e){}
+  if(!copied&&navigator.clipboard){navigator.clipboard.writeText(out).then(()=>setCopied(true)).catch(()=>setCopied(false));}
+  else setCopied(copied);
+}
+function setCopied(ok){
+  document.getElementById('copystatus').textContent = ok
+    ? '✓ Copied to clipboard. Paste it into the quiz answer box below the simulation.'
+    : 'Select-all is done for you. Press Ctrl+C (⌘C) to copy, then paste into the quiz answer box.';
+}
+function spend(type){
+  if(used[type]>=LIMIT[type])return false;
+  used[type]++;
+  const left=LIMIT[type]-used[type];
+  const b=document.getElementById('b-'+type);b.textContent=left;
+  b.classList.toggle('low',left>0&&left<=3);b.classList.toggle('out',left===0);
+  const n=document.getElementById('n-'+type);if(n)n.textContent=left;
+  const q=document.getElementById('q-'+type);
+  if(q){q.classList.toggle('low',left>0&&left<=3);q.classList.toggle('out',left===0);}
+  document.getElementById('sum-'+type).textContent=used[type];
+  if(left===0)lockRemaining(type);
+  return true;
+}
+function lockRemaining(type){
+  if(type==='iv')document.querySelectorAll('.qlist button:not(.asked)').forEach(b=>b.classList.add('locked'));
+  if(type==='exam')document.querySelectorAll('#examlist .action:not(.revealed)').forEach(a=>{a.classList.add('locked');a.querySelector('button').disabled=true;});
+  if(type==='order')document.querySelectorAll('#orderlist .action:not(.revealed)').forEach(a=>{a.classList.add('locked');a.querySelector('button').disabled=true;});
+}
+const qlist=document.getElementById('qlist'),tr=document.getElementById('transcript');
+let asked=0;
+IV.forEach((c,ci)=>{
+  const d=document.createElement('details');if(ci===0)d.open=true;
+  d.innerHTML='<summary>'+c.cat+'</summary>';
+  c.qs.forEach(q=>{
+    const b=document.createElement('button');b.textContent=q[0];
+    b.onclick=()=>{
+      if(b.classList.contains('asked')||b.classList.contains('locked'))return;
+      if(!spend('iv'))return;
+      b.classList.add('asked');asked++;
+      document.getElementById('asked').textContent=asked;
+      logAdd('Question',q[0]);
+      tr.insertAdjacentHTML('beforeend','<div class="msg student"><div class="whol">You (PMHNP student)</div><div class="bubble">'+q[0]+'</div></div>');
+      const who=q[3]||'Ashley';const cls=q[3]?'collateral':'patient';
+      setTimeout(()=>{tr.insertAdjacentHTML('beforeend','<div class="msg '+cls+'"><div class="whol">'+who+'</div><div class="bubble">'+q[1]+'</div>'+(q[2]?'<div class="cue">'+q[2]+'</div>':'')+'</div>');tr.scrollTop=tr.scrollHeight;},450);
+      tr.scrollTop=tr.scrollHeight;};
+    d.appendChild(b);});
+  qlist.appendChild(d);});
+function makeAction(item,type,verb){
+  const div=document.createElement('div');div.className='action';
+  div.innerHTML='<button>'+verb+'</button><div><div class="name">'+item[0]+'</div><div class="result">'+item[1]+'</div></div>';
+  div.querySelector('button').onclick=e=>{
+    if(div.classList.contains('locked')||div.classList.contains('revealed'))return;
+    if(!spend(type))return;
+    div.classList.add('revealed');e.target.disabled=true;e.target.textContent='Done';
+    logAdd(type==='exam'?'Exam':'Order',item[0]);
+  };
+  return div;
+}
+EXAMS.forEach(item=>document.getElementById('examlist').appendChild(makeAction(item,'exam','Perform')));
+ORDERS.forEach((grp,gi)=>{
+  const d=document.createElement('details');d.className='ogrp';
+  d.innerHTML='<summary>'+grp.cat+'</summary>';
+  grp.items.forEach(item=>d.appendChild(makeAction(item,'order','Order')));
+  document.getElementById('orderlist').appendChild(d);
+});
+// ---------- phased timing engine ----------
+const REVIEW_SECS=1200, DEFENSE_SECS=300;
+let phase='pre', phaseLeft=REVIEW_SECS, warned=false, audioCtx=null, ticking=null;
+function initAudio(){try{audioCtx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}
+function chime(n){if(!audioCtx)return;try{for(let i=0;i<(n||1);i++){const t0=audioCtx.currentTime+i*0.5;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.frequency.value=880;g.gain.setValueAtTime(0.0001,t0);g.gain.exponentialRampToValueAtTime(0.35,t0+0.03);g.gain.exponentialRampToValueAtTime(0.0001,t0+0.45);o.start(t0);o.stop(t0+0.5);}}catch(e){}}
+function speak(text){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.rate=1.0;speechSynthesis.speak(u);}catch(e){}}
+function announce(title,text,say){chime(2);speak(say||text);
+  document.getElementById('ann-title').textContent=title;
+  document.getElementById('ann-text').textContent=text;
+  document.getElementById('announce').style.display='flex';}
+function switchTab(id){
+  if(phase==='submit'&&id!=='log')return;
+  document.querySelectorAll('#tabbar button').forEach(x=>x.classList.toggle('active',x.dataset.p===id));
+  document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===id));}
+function updateTimer(){
+  const bar=document.getElementById('phasebar'),t=document.getElementById('timer'),
+        lab=document.getElementById('phaselabel'),hint=document.getElementById('phasehint');
+  bar.classList.remove('amber','red','green');
+  bar.classList.toggle('urgent',(phase==='review'||phase==='defense')&&phaseLeft<=60);
+  if(phase==='pre'){t.textContent='20:00';lab.textContent='Ready';hint.textContent='Timer starts on Begin';}
+  else if(phase==='review'){t.textContent=mmss(phaseLeft);lab.textContent='Part I · Case Review';
+    hint.textContent=phaseLeft<=300?'Wrap up. Defense begins soon.':'Interview · Examine · Order';
+    if(phaseLeft<=300)bar.classList.add('amber');}
+  else if(phase==='defense'){t.textContent=mmss(phaseLeft);lab.textContent='Part II · Oral Defense';
+    hint.textContent='Face the camera. Answer the 4 questions.';bar.classList.add('red');}
+  else if(phase==='submit'){t.textContent='DONE';lab.textContent='Part III · Submit';
+    hint.textContent='Copy Encounter Summary → paste in quiz';bar.classList.add('green');}}
+function updatePhaseBtn(){const b=document.getElementById('phasebtn');
+  if(phase==='review'){b.style.display='block';b.textContent='End Case Review Early → Begin Oral Defense';}
+  else if(phase==='defense'){b.style.display='block';b.textContent='End Oral Defense Early → Submit';}
+  else b.style.display='none';}
+function phaseAdvance(){
+  if(phase==='review'&&confirm('End your case review now and begin the 5-minute oral defense?'))startDefense();
+  else if(phase==='defense'&&confirm('End your oral defense now and move to submission?'))startSubmit();}
+function begin(){phase='review';document.getElementById('startoverlay').style.display='none';
+  initAudio();chime(1);logAdd('Time','Case review started (20:00 allotted)');
+  updateTimer();updatePhaseBtn();
+  ticking=setInterval(tick,1000);}
+function startDefense(){phase='defense';phaseLeft=DEFENSE_SECS;
+  logAdd('Time','Oral defense started (05:00 allotted)');
+  announce('Begin Your Oral Defense (5:00)',
+    'Face your camera and begin your oral defense now. You have five minutes to answer the four presentation questions shown on screen, in one continuous recording.',
+    'Case review is complete. Face your camera and begin your oral defense now. You have five minutes to answer the four presentation questions shown on screen.');
+  switchTab('defense');updateTimer();updatePhaseBtn();}
+function startSubmit(){phase='submit';
+  logAdd('Time','Oral defense ended. Station locked to Encounter Log for submission.');
+  ['iv','exam','order'].forEach(t=>lockRemaining(t));
+  document.querySelectorAll('#tabbar button').forEach(x=>{if(x.dataset.p!=='log')x.classList.add('disabled');});
+  const imp=document.getElementById('impression');imp.readOnly=true;imp.style.background='#f0f3f5';
+  announce('Submit Your Written Answer',
+    'Click "Generate & Copy Encounter Summary," then paste it into the quiz answer box below the simulation. This is your submitted written record of the encounter.',
+    'Your oral defense is complete. Click generate and copy encounter summary, then paste it into the quiz answer box as your written answer.');
+  switchTab('log');toggleDrawer(false);updateTimer();updatePhaseBtn();
+  const g=document.getElementById('gencopy');if(g)g.classList.add('pulse');}
+function tick(){sec++;
+  if(phase==='review'||phase==='defense'){phaseLeft--;updateTimer();
+    if(phase==='review'&&phaseLeft===300&&!warned){warned=true;
+      logAdd('Time','5-minute warning: case review');
+      announce('Case Review: 5 Minutes Remaining',
+        'Five minutes remain in your case review. Finalize your working impression in your Clinical Notes.',
+        'Five minutes remain in your case review.');}
+    if(phaseLeft<=0){if(phase==='review')startDefense();else startSubmit();}}}
+updateTimer();
+document.querySelectorAll('#tabbar button').forEach(b=>{b.onclick=()=>switchTab(b.dataset.p);});
+</script>
+<div id="startoverlay">
+  <div class="box">
+    <h2>Case 01: Clinical Diagnostic Station</h2>
+    <p>This station is timed and will guide you through three parts with on-screen and spoken instructions:</p>
+    <ol>
+      <li><b>Case Review (20 minutes).</b> Evaluate the patient using your budgets: 12 interview questions, 5 examinations, 8 diagnostic orders. A warning sounds at 5 minutes remaining.</li>
+      <li><b>Oral Defense (5 minutes).</b> Face your camera and answer the four questions in the Oral Defense section, in one continuous recording.</li>
+      <li><b>Submission.</b> Generate your Encounter Summary and paste it into the quiz answer box.</li>
+    </ol>
+    <p>The timer and your remaining budgets stay pinned at the top. Your <b>Clinical Notes</b> open from the orange button at the bottom. You may end a phase early with the button beside it. <b>Check that your volume is on.</b> The timer starts when you click below.</p>
+    <button onclick="begin()">Begin Case Review (20:00)</button>
+  </div>
+</div>
+<div id="announce"><div class="box"><h2 id="ann-title"></h2><p id="ann-text"></p><button onclick="document.getElementById('announce').style.display='none'">OK</button></div></div>
+</body>
+</html>
